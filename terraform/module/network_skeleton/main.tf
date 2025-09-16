@@ -174,7 +174,7 @@ resource "aws_eks_cluster" "this" {
   }
 
   lifecycle {
-    ignore_changes = [version == null ? [] : []]
+    ignore_changes = ["version"]
   }
   depends_on = [aws_iam_role_policy_attachment.eks_cluster_AmazonEKSClusterPolicy]
 }
