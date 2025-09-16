@@ -83,7 +83,7 @@ resource "aws_subnet" "private" {
 # NAT Gateway 
 # -----------------------------
 resource "aws_eip" "nat" {
-  vpc = true
+  domain = "vpc"
 }
 
 resource "aws_nat_gateway" "nat" {
@@ -174,7 +174,7 @@ resource "aws_eks_cluster" "this" {
   }
 
   lifecycle {
-    ignore_changes = ["version"]
+    ignore_changes = [version]
   }
   depends_on = [aws_iam_role_policy_attachment.eks_cluster_AmazonEKSClusterPolicy]
 }
@@ -310,7 +310,7 @@ resource "aws_db_instance" "default" {
   engine_version         = var.db_engine_version
   instance_class         = var.db_instance_class
   allocated_storage      = var.db_allocated_storage
-  name                   = var.db_name
+  db_name                   = var.db_name
   username               = var.db_username
   password               = var.db_password
   port                   = var.db_port
