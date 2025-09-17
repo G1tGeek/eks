@@ -16,7 +16,6 @@ variable "network_s3_key" {
 
 variable "cluster_name" {
   type    = string
-  default = "eks-cluster"
 }
 
 variable "key_name" {
@@ -30,18 +29,4 @@ variable "node_groups" {
     max_size      = number
     min_size      = number
   }))
-  default = {
-    app1 = {
-      instance_type = "t3.medium"
-      desired_size  = 1
-      max_size      = 2
-      min_size      = 1
-    }
-    app2 = {
-      instance_type = "t3.medium"
-      desired_size  = 1
-      max_size      = 2
-      min_size      = 1
-    }
-  }
 }
