@@ -1,6 +1,6 @@
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 19.0"  # Specify a compatible version
+  version = "~> 19.0"  # Compatible version
 
   cluster_name    = var.cluster_name
   cluster_version = "1.28"
@@ -10,15 +10,14 @@ module "eks" {
   cluster_endpoint_private_access = true
   cluster_endpoint_public_access  = true
 
-  # Use eks_managed_node_groups instead of node_groups
   eks_managed_node_groups = {
     for ng_name, ng in var.node_groups :
     ng_name => {
-      desired_size = ng.desired_size
-      max_size     = ng.max_size
-      min_size     = ng.min_size
+      desired_size  = ng.desired_size
+      max_size      = ng.max_size
+      min_size      = ng.min_size
 
-      instance_types = [ng.instance_type]
+      instance_types = ng.instance_types
       subnet_ids     = data.terraform_remote_state.network.outputs.private_subnet_ids
 
       key_name = var.key_name
@@ -29,3 +28,4 @@ module "eks" {
     Environment = var.environment
   }
 }
+
