@@ -31,12 +31,10 @@ resource "aws_internet_gateway" "gw" {
 
 # ------------------------------------------------------------------
 # Key Pair - Create if missing and upload to S3 
-# (can stay here if you want SSH key infra at network layer,
-# but usually this would move to compute too)
 # ------------------------------------------------------------------
 resource "null_resource" "create_key_pair_if_missing" {
   provisioner "local-exec" {
-    command     = "${path.module}/key.sh ${var.key_name} ${var.aws_region} ${var.keypair_s3_bucket} ${var.environment}"
+    command     = "bash ${path.module}/key.sh ${var.key_name} ${var.aws_region} ${var.keypair_s3_bucket} ${var.environment}"
     interpreter = ["/bin/bash", "-c"]
   }
 
