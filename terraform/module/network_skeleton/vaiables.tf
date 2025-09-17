@@ -43,3 +43,18 @@ variable "private_subnets" {
   type        = list(string)
   default     = []
 }
+
+
+############################
+# Key-pair
+############################
+
+variable "key_name" {
+  description = "Name of the EC2 key pair to create/use"
+  type        = string
+}
+
+variable "keypair_s3_bucket" {
+  description = "S3 bucket to store the keypair PEM file"
+  type        = string
+}
