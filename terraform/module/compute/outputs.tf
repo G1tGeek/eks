@@ -30,12 +30,12 @@ output "eks_oidc_provider_arn" {
 
 output "eks_managed_node_group_names" {
   description = "List of EKS managed node group names"
-  value       = module.eks.managed_node_group_names
+  value       = keys(module.eks.eks_managed_node_groups)
 }
 
 output "eks_managed_node_group_arns" {
   description = "List of EKS managed node group ARNs"
   value = [
-    for ng in values(module.eks.managed_node_groups) : ng.arn
+    for ng in values(module.eks.eks_managed_node_groups) : ng.arn
   ]
 }
