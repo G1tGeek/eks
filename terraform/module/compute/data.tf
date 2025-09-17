@@ -11,5 +11,5 @@ data "terraform_remote_state" "network" {
 # Fetch the private key (PEM) from S3 for node group SSH access
 data "aws_s3_object" "node_key" {
   bucket = var.network_s3_bucket
-  key    = "${var.environment}/key-pair/${var.key_name}.pem"
+  key    = "env/${var.environment}/key-pair/${var.key_name}.pem"
 }
