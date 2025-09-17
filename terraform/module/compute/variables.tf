@@ -29,11 +29,12 @@ variable "key_name" {
 }
 
 variable "node_groups" {
-  description = "Map of managed node groups"
   type = map(object({
     instance_types = list(string)
     desired_size   = number
     max_size       = number
     min_size       = number
   }))
+}
+
 }
