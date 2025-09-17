@@ -1,41 +1,31 @@
-output "eks_cluster_name" {
-  description = "Name of the EKS cluster"
-  value       = module.eks.cluster_name
-}
 
-output "eks_cluster_id" {
-  description = "EKS cluster ID"
-  value       = module.eks.cluster_id
-}
+module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "~> 20.0"
 
-output "eks_cluster_endpoint" {
-  description = "Endpoint for EKS control plane"
-  value       = module.eks.cluster_endpoint
-}
+  cluster_name    = var.cluster_name
+  cluster_version = "1.28"
+  subnet_ids      = data.terraform_remote_state.network.outputs.private_subnet_ids
+  vpc_id          = data.terraform_remote_state.network.outputs.vpc_id
 
-output "eks_cluster_certificate_authority_data" {
-  description = "Base64 encoded certificate data required to communicate with the cluster"
-  value       = module.eks.cluster_certificate_authority_data
-}
+  cluster_endpoint_private_access = true
+  cluster_endpoint_public_access  = true
 
-output "eks_cluster_arn" {
-  description = "ARN of the EKS cluster"
-  value       = module.eks.cluster_arn
-}
+  eks_managed_node_groups = {
+    for ng_name, ng in var.node_groups :
+    ng_name => {
+      desired_size  = ng.desired_size
+      max_size      = ng.max_size
+      min_size      = ng.min_size
 
-output "eks_oidc_provider_arn" {
-  description = "ARN of the OIDC provider"
-  value       = module.eks.oidc_provider_arn
-}
+      instance_types = ng.instance_types
+      subnet_ids     = data.terraform_remote_state.network.outputs.private_subnet_ids
 
-output "eks_managed_node_group_names" {
-  description = "List of EKS managed node group names"
-  value       = module.eks.managed_node_group_names
-}
+      key_name = var.key_name
+    }
+  }
 
-output "eks_managed_node_group_arns" {
-  description = "List of EKS managed node group ARNs"
-  value = [
-    for ng in values(module.eks.managed_node_groups) : ng.arn
-  ]
+  tags = {
+    Environment = var.environment
+  }
 }
