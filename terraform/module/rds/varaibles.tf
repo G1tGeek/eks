@@ -1,4 +1,6 @@
+# -----------------------------
 # Network remote state S3 config
+# -----------------------------
 variable "network_remote_state_bucket" {
   description = "S3 bucket where network module terraform.tfstate is stored"
   type        = string
@@ -14,7 +16,9 @@ variable "network_remote_state_region" {
   type        = string
 }
 
+# -----------------------------
 # RDS variables
+# -----------------------------
 variable "vpc_id" {
   description = "VPC ID where RDS will be deployed (override remote state)"
   type        = string
@@ -28,17 +32,6 @@ variable "private_subnet_ids" {
 variable "db_name" {
   description = "Database name"
   type        = string
-}
-
-variable "db_username" {
-  description = "Database master username"
-  type        = string
-}
-
-variable "db_password" {
-  description = "Database master password"
-  type        = string
-  sensitive   = true
 }
 
 variable "db_engine" {
@@ -62,7 +55,7 @@ variable "multi_az" {
 }
 
 variable "rds_secret_name" {
-  description = "Secrets Manager secret name to store RDS credentials (optional)"
+  description = "Secrets Manager secret name containing RDS credentials (required for username/password)"
   type        = string
 }
 
