@@ -1,43 +1,36 @@
-name: RDS Terraform
+name: Terraform RDS
 
 on:
   workflow_run:
-    workflows: ["Compute Terraform"]
+    workflows: ["Terraform Compute"]
     types:
       - completed
-  workflow_dispatch:
 
 jobs:
-  rds:
+  terraform-rds:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    defaults:
-      run:
-        working-directory: terraform/wrapper/rds
-
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-northeast-1
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.9.8
+      - name: Run Checkov on RDS module
+        run: checkov -d terraform/module/rds
 
-      - run: terraform init
-      - run: terraform fmt -check
-      - run: terraform validate
+      - name: Run Checkov on RDS wrapper
+        run: checkov -d terraform/wrapper/rds
 
-      # ✅ Checkov Scan
-      - name: Run Checkov scan
-        uses: bridgecrewio/checkov-action@v12
-        with:
-          directory: .
+      - name: Terraform Init
+        working-directory: terraform/wrapper/rds
+        run: terraform init
 
-      - run: terraform plan -out=tfplan
-      - if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve tfplan
+      - name: Terraform Plan
+        working-directory: terraform/wrapper/rds
+        run: terraform plan
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        working-directory: terraform/wrapper/rds
+        run: terraform apply -auto-approve
