@@ -56,6 +56,7 @@ variable "node_groups" {
   }))
 }
 
+# IAM mappings for aws-auth
 variable "map_users" {
   description = "List of additional IAM users to add to aws-auth ConfigMap"
   type = list(object({
@@ -63,16 +64,4 @@ variable "map_users" {
     username = string
     groups   = list(string)
   }))
-  default = []
 }
-
-variable "map_roles" {
-  description = "List of additional IAM roles to add to aws-auth ConfigMap"
-  type = list(object({
-    rolearn  = string
-    username = string
-    groups   = list(string)
-  }))
-  default = []
-}
-
