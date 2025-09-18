@@ -22,10 +22,14 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Run Checkov on Network module
-        run: checkov -d terraform/module/network_skeleton
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform/module/network_skeleton
 
       - name: Run Checkov on Network wrapper
-        run: checkov -d terraform/wrapper/network_skeleton
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform/wrapper/network_skeleton
 
       - name: Terraform Init
         working-directory: terraform/wrapper/network_skeleton
