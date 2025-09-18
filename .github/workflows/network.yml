@@ -5,9 +5,15 @@ on:
     branches:
       - main
     paths:
+      # Wrappers
       - 'terraform/wrapper/network_skeleton/**'
       - 'terraform/wrapper/compute/**'
       - 'terraform/wrapper/rds/**'
+
+      # Modules
+      - 'terraform/module/network_skeleton/**'
+      - 'terraform/module/compute/**'
+      - 'terraform/module/rds/**'
   workflow_dispatch:
 
 jobs:
