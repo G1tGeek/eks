@@ -22,9 +22,8 @@ module "eks" {
     }
   }
 
-  # 👇 expose IAM access config
+
   map_users = var.map_users
-  map_roles = var.map_roles
 
   tags = {
     Environment = var.environment
