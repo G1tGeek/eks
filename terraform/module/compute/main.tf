@@ -3,34 +3,28 @@ module "eks" {
   version = "~> 20.0"
 
   cluster_name    = var.cluster_name
-  cluster_version = "1.28"
+  cluster_version = var.cluster_version
   subnet_ids      = data.terraform_remote_state.network.outputs.private_subnet_ids
   vpc_id          = data.terraform_remote_state.network.outputs.vpc_id
 
-  cluster_endpoint_private_access = true
-  cluster_endpoint_public_access  = true
+  cluster_endpoint_private_access = var.cluster_endpoint_private_access
+  cluster_endpoint_public_access  = var.cluster_endpoint_public_access
 
   eks_managed_node_groups = {
     for ng_name, ng in var.node_groups :
     ng_name => {
-      desired_size  = ng.desired_size
-      max_size      = ng.max_size
-      min_size      = ng.min_size
-
+      desired_size   = ng.desired_size
+      max_size       = ng.max_size
+      min_size       = ng.min_size
       instance_types = ng.instance_types
       subnet_ids     = data.terraform_remote_state.network.outputs.private_subnet_ids
-
-      key_name = var.key_name
+      key_name       = var.key_name
     }
   }
 
-  map_users = [
-    {
-      userarn  = "arn:aws:iam::130830900133:user/new"
-      username = "new"
-      groups   = ["system:masters"]
-    }
-  ]
+  # 👇 expose IAM access config
+  map_users = var.map_users
+  map_roles = var.map_roles
 
   tags = {
     Environment = var.environment
