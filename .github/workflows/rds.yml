@@ -16,11 +16,15 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Run Checkov on RDS module
-        run: checkov -d terraform/module/rds
-
-      - name: Run Checkov on RDS wrapper
-        run: checkov -d terraform/wrapper/rds
+      - name: Run Checkov on Network module
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform/module/rds
+      
+      - name: Run Checkov on Network wrapper
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform/wrapper/rds
 
       - name: Terraform Init
         working-directory: terraform/wrapper/rds
