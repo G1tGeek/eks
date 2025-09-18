@@ -58,10 +58,9 @@ variable "node_groups" {
 
 # IAM mappings for aws-auth
 variable "map_users" {
-  description = "List of additional IAM users to add to aws-auth ConfigMap"
+  description = "List of additional IAM users to grant cluster access"
   type = list(object({
     userarn  = string
     username = string
-    groups   = list(string)
   }))
 }
