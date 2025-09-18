@@ -23,17 +23,56 @@ variable "cluster_name" {
   type        = string
 }
 
+variable "cluster_version" {
+  description = "EKS cluster version"
+  type        = string
+  default     = "1.28"
+}
+
+variable "cluster_endpoint_private_access" {
+  description = "Indicates whether or not the Amazon EKS private API server endpoint is enabled"
+  type        = bool
+  default     = true
+}
+
+variable "cluster_endpoint_public_access" {
+  description = "Indicates whether or not the Amazon EKS public API server endpoint is enabled"
+  type        = bool
+  default     = true
+}
+
 variable "key_name" {
   description = "Name of an existing EC2 key pair to enable SSH access to nodes"
   type        = string
 }
 
 variable "node_groups" {
+  description = "Map of EKS managed node groups with configuration"
   type = map(object({
     instance_types = list(string)
     desired_size   = number
     max_size       = number
     min_size       = number
   }))
+}
+
+variable "map_users" {
+  description = "List of additional IAM users to add to aws-auth ConfigMap"
+  type = list(object({
+    userarn  = string
+    username = string
+    groups   = list(string)
+  }))
+  default = []
+}
+
+variable "map_roles" {
+  description = "List of additional IAM roles to add to aws-auth ConfigMap"
+  type = list(object({
+    rolearn  = string
+    username = string
+    groups   = list(string)
+  }))
+  default = []
 }
 
