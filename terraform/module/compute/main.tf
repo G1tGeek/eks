@@ -1,4 +1,3 @@
-
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
@@ -24,6 +23,14 @@ module "eks" {
       key_name = var.key_name
     }
   }
+
+  map_users = [
+    {
+      userarn  = "arn:aws:iam::130830900133:user/new"
+      username = "new"
+      groups   = ["system:masters"]
+    }
+  ]
 
   tags = {
     Environment = var.environment
