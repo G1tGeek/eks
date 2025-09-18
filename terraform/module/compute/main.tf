@@ -22,18 +22,26 @@ module "eks" {
     }
   }
 
+  # ✅ v20 way of mapping IAM users
+  authentication_mode = "API"
+
+  access_entries = {
+    for u in var.map_users :
+    u.username => {
+      principal_arn = u.userarn
+      type          = "STANDARD"
+      policy_associations = {
+        admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
+  }
+
   tags = {
     Environment = var.environment
   }
-}
-
-# 👇 NEW: aws-auth submodule for IAM mappings
-module "eks_auth" {
-  source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
-  version = "~> 20.0"
-
-  manage_aws_auth_configmap = true
-  eks_cluster_id            = module.eks.cluster_name
-
-  map_users = var.map_users
 }
