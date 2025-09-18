@@ -13,7 +13,8 @@ output "rds_security_group_id" {
   value       = aws_security_group.rds_sg.id
 }
 
+# Optional: ARN of the Secrets Manager secret (without exposing credentials)
 output "rds_secret_arn" {
-  description = "ARN of the RDS credentials stored in Secrets Manager"
-  value       = var.rds_secret_name != "" ? aws_secretsmanager_secret.rds_secret[0].arn : ""
+  description = "ARN of the Secrets Manager secret storing RDS credentials"
+  value       = var.rds_secret_name != "" ? var.rds_secret_name : ""
 }
