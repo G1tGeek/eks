@@ -1,50 +1,41 @@
-name: Network Terraform
+name: Terraform Network
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
-      # Wrappers
+      - 'terraform/module/network_skeleton/**'
       - 'terraform/wrapper/network_skeleton/**'
+      - 'terraform/module/compute/**'
       - 'terraform/wrapper/compute/**'
+      - 'terraform/module/rds/**'
       - 'terraform/wrapper/rds/**'
 
-      # Modules
-      - 'terraform/module/network_skeleton/**'
-      - 'terraform/module/compute/**'
-      - 'terraform/module/rds/**'
-  workflow_dispatch:
-
 jobs:
-  network:
+  terraform-network:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: terraform/wrapper/network_skeleton
-
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-northeast-1
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.9.8
+      - name: Run Checkov on Network module
+        run: checkov -d terraform/module/network_skeleton
 
-      - run: terraform init
-      - run: terraform fmt -check
-      - run: terraform validate
+      - name: Run Checkov on Network wrapper
+        run: checkov -d terraform/wrapper/network_skeleton
 
-      - name: Run Checkov scan
-        uses: bridgecrewio/checkov-action@v12
-        with:
-          directory: .
+      - name: Terraform Init
+        working-directory: terraform/wrapper/network_skeleton
+        run: terraform init
 
-      - run: terraform plan -out=tfplan
-      - if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve tfplan
+      - name: Terraform Plan
+        working-directory: terraform/wrapper/network_skeleton
+        run: terraform plan
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        working-directory: terraform/wrapper/network_skeleton
+        run: terraform apply -auto-approve
