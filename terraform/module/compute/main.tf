@@ -22,10 +22,18 @@ module "eks" {
     }
   }
 
-
-  map_users = var.map_users
-
   tags = {
     Environment = var.environment
   }
+}
+
+# 👇 NEW: aws-auth submodule for IAM mappings
+module "eks_auth" {
+  source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
+  version = "~> 20.0"
+
+  manage_aws_auth_configmap = true
+  eks_cluster_id            = module.eks.cluster_name
+
+  map_users = var.map_users
 }
