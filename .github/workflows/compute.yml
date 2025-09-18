@@ -16,12 +16,16 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Run Checkov on Compute module
-        run: checkov -d terraform/module/compute
-
-      - name: Run Checkov on Compute wrapper
-        run: checkov -d terraform/wrapper/compute
-
+      - name: Run Checkov on Network module
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform/module/compute
+      
+      - name: Run Checkov on Network wrapper
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform/wrapper/compute
+          
       - name: Terraform Init
         working-directory: terraform/wrapper/compute
         run: terraform init
