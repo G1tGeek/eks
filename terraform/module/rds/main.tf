@@ -1,23 +1,4 @@
 # -----------------------------
-# Secrets Manager for RDS credentials
-# -----------------------------
-resource "aws_secretsmanager_secret" "rds_secret" {
-  count = var.rds_secret_name != "" ? 1 : 0
-
-  name = var.rds_secret_name
-  tags = merge(var.tags, { Name = "${var.db_name}-secret" })
-}
-
-resource "aws_secretsmanager_secret_version" "rds_secret_version" {
-  count       = var.rds_secret_name != "" ? 1 : 0
-  secret_id   = aws_secretsmanager_secret.rds_secret[0].id
-  secret_string = jsonencode({
-    username = var.db_username
-    password = var.db_password
-  })
-}
-
-# -----------------------------
 # Security Group for RDS
 # -----------------------------
 resource "aws_security_group" "rds_sg" {
@@ -29,7 +10,7 @@ resource "aws_security_group" "rds_sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/16"] # Can be overridden in wrapper if needed
+    cidr_blocks = ["10.0.0.0/16"]
   }
 
   egress {
@@ -59,8 +40,8 @@ resource "aws_db_instance" "rds" {
   engine               = var.db_engine
   engine_version       = var.db_engine_version
   instance_class       = var.db_instance_class
-  username             = var.db_username
-  password             = var.db_password
+  username             = local.rds_credentials.username
+  password             = local.rds_credentials.password
   allocated_storage    = 20
   storage_type         = "gp2"
   publicly_accessible  = false
