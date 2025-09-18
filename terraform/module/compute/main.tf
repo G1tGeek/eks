@@ -22,7 +22,6 @@ module "eks" {
     }
   }
 
-  # ✅ v20 way of mapping IAM users
   authentication_mode = "API"
 
   access_entries = {
