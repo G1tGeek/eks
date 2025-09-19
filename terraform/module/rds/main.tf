@@ -59,6 +59,17 @@ resource "aws_iam_role_policy_attachment" "rds_monitoring_attach" {
 }
 
 # -----------------------------
+# KMS Key for RDS
+# -----------------------------
+resource "aws_kms_key" "rds" {
+  description             = "KMS CMK for RDS storage and Performance Insights"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+
+  tags = merge(var.tags, { Name = "${var.db_name}-kms" })
+}
+
+# -----------------------------
 # RDS Instance
 # -----------------------------
 resource "aws_db_instance" "rds" {
@@ -76,13 +87,16 @@ resource "aws_db_instance" "rds" {
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   multi_az               = var.multi_az
 
-  storage_encrypted             = true
-  deletion_protection           = true
-  auto_minor_version_upgrade    = true
-  copy_tags_to_snapshot         = true
-  performance_insights_enabled  = true
-  monitoring_interval           = 60
-  monitoring_role_arn           = aws_iam_role.rds_monitoring.arn
+  # 🔐 Security & compliance
+  storage_encrypted               = true
+  kms_key_id                      = aws_kms_key.rds.arn
+  deletion_protection             = true
+  auto_minor_version_upgrade      = true
+  copy_tags_to_snapshot           = true
+  performance_insights_enabled    = true
+  performance_insights_kms_key_id = aws_kms_key.rds.arn
+  monitoring_interval             = 60
+  monitoring_role_arn             = aws_iam_role.rds_monitoring.arn
   enabled_cloudwatch_logs_exports = ["error", "general", "slowquery"]
 
   tags = merge(var.tags, { Name = var.db_name })
