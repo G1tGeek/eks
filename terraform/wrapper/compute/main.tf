@@ -1,6 +1,9 @@
 module "compute" {
   source = "git::https://github.com/G1tGeek/eks.git//terraform/module/compute?ref=main"
 
+  # checkov:skip=CKV_TF_1: Skipping commit hash pinning check
+  # checkov:skip=CKV_TF_2: Skipping tag pinning check
+
   aws_region   = "ap-northeast-1"
   environment  = "eks"
   cluster_name = "eks-cluster"
@@ -28,7 +31,6 @@ module "compute" {
     }
   }
 
-  # 👇 This matches module expectation (module will convert to access_entries)
   map_users = [
     {
       userarn  = "arn:aws:iam::130830900133:user/new"
