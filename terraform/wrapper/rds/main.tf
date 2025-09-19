@@ -21,7 +21,7 @@ module "rds" {
   db_name           = "mydb"
   db_engine         = "mysql"
   db_engine_version = "8.0"
-  db_instance_class = "db.t3.micro"
+  db_instance_class = "db.t3.medium"
   multi_az          = false
 
   # -----------------------------
