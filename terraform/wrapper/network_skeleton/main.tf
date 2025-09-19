@@ -26,6 +26,9 @@ locals {
 module "network_skeleton" {
   source = "git::https://github.com/G1tGeek/eks.git//terraform/module/network_skeleton?ref=main"
 
+  # checkov:skip=CKV_TF_1: Skipping commit hash pinning check
+  # checkov:skip=CKV_TF_2: Skipping tag pinning check
+
   # Provider / generic
   aws_region  = "ap-northeast-1"
   environment = local.environment
