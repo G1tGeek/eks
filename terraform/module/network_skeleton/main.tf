@@ -19,6 +19,61 @@ resource "aws_vpc" "main" {
 }
 
 # -----------------------------
+# VPC Flow Logs (Fix CKV2_AWS_11)
+# -----------------------------
+resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
+  name              = "/aws/vpc/${var.environment}-flow-logs"
+  retention_in_days = 30
+}
+
+resource "aws_iam_role" "vpc_flow_logs_role" {
+  name = "${var.environment}-vpc-flow-logs-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "vpc-flow-logs.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "vpc_flow_logs_role_policy" {
+  role       = aws_iam_role.vpc_flow_logs_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+}
+
+resource "aws_flow_log" "vpc_flow_log" {
+  vpc_id          = aws_vpc.main.id
+  iam_role_arn    = aws_iam_role.vpc_flow_logs_role.arn
+  log_destination = aws_cloudwatch_log_group.vpc_flow_logs.arn
+  traffic_type    = "ALL"
+
+  tags = merge(var.tags, {
+    Name = "${var.environment}-vpc-flow-logs"
+  })
+}
+
+# -----------------------------
+# Lock down Default Security Group (Fix CKV2_AWS_12)
+# -----------------------------
+resource "aws_default_security_group" "default" {
+  vpc_id = aws_vpc.main.id
+
+  ingress = []
+  egress  = []
+
+  tags = merge(var.tags, {
+    Name = "${var.environment}-default-sg"
+  })
+}
+
+# -----------------------------
 # Internet Gateway
 # -----------------------------
 resource "aws_internet_gateway" "gw" {
