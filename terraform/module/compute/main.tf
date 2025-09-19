@@ -1,5 +1,6 @@
-# checkov:skip=CKV_TF_1: Registry module version is pinned, commit hash not applicable
 module "eks" {
+  # checkov:skip=CKV_TF_1: Registry module version is pinned, commit hash not applicable
+
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
 
@@ -45,5 +46,4 @@ module "eks" {
     Environment = var.environment
   }
 }
-
 
