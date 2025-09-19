@@ -1,30 +1,30 @@
-name: Terraform Compute
+name: Terraform Network
 
 on:
-  workflow_run:
-    workflows: ["Terraform Network"]
-    types:
-      - completed
+  push:
+    branches: [main]
+    paths:
+      - 'terraform/module/network_skeleton/**'
+      - 'terraform/wrapper/network_skeleton/**'
+      - 'terraform/module/compute/**'
+      - 'terraform/wrapper/compute/**'
+      - 'terraform/module/rds/**'
+      - 'terraform/wrapper/rds/**'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform action to run (apply or destroy)'
+        required: true
+        default: 'apply'
 
 jobs:
-  terraform-compute:
+  terraform-network:
     runs-on: ubuntu-latest
+    env:
+      TF_WORKING_DIR: terraform/wrapper/network_skeleton
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      - name: Run Checkov on Compute module
-        uses: bridgecrewio/checkov-action@v12
-        with:
-          directory: terraform/module/compute
-      
-      - name: Run Checkov on Compute wrapper
-        uses: bridgecrewio/checkov-action@v12
-        with:
-          directory: terraform/wrapper/compute
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -32,16 +32,35 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-1
-          
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Run Checkov on Network module
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform/module/network_skeleton
+
+      - name: Run Checkov on Network wrapper
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform/wrapper/network_skeleton
+
       - name: Terraform Init
-        working-directory: terraform/wrapper/compute
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform init
 
       - name: Terraform Plan
-        working-directory: terraform/wrapper/compute
+        if: ${{ github.event.inputs.action == 'apply' }}
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform plan
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
-        working-directory: terraform/wrapper/compute
+        if: ${{ github.event.inputs.action == 'apply' && github.ref == 'refs/heads/main' }}
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform apply -auto-approve
+
+      - name: Terraform Destroy
+        if: ${{ github.event.inputs.action == 'destroy' && github.ref == 'refs/heads/main' }}
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform destroy -auto-approve
