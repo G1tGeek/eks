@@ -2,8 +2,9 @@ provider "aws" {
   region = var.aws_region
 }
 
-# availability zones helper 
+# Availability zones helper
 data "aws_availability_zones" "available" {}
+data "aws_caller_identity" "current" {}
 
 # -----------------------------
 # VPC
@@ -19,25 +20,61 @@ resource "aws_vpc" "main" {
 }
 
 # -----------------------------
-# KMS Key for CloudWatch Logs (Fix CKV_AWS_158)
+# KMS Key for CloudWatch (Fix CKV2_AWS_64)
 # -----------------------------
 resource "aws_kms_key" "cloudwatch" {
   description             = "KMS key for CloudWatch log group encryption"
   deletion_window_in_days = 7
   enable_key_rotation     = true
 
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Id      = "cloudwatch-kms-key-policy"
+    Statement = [
+      {
+        Sid       = "AllowRootAccountFullAccess"
+        Effect    = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action   = "kms:*"
+        Resource = "*"
+      },
+      {
+        Sid       = "AllowCloudWatchLogsUseOfKey"
+        Effect    = "Allow"
+        Principal = {
+          Service = "logs.${var.aws_region}.amazonaws.com"
+        }
+        Action = [
+          "kms:Encrypt*",
+          "kms:Decrypt*",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+
   tags = merge(var.tags, {
     Name = "${var.environment}-cw-kms"
   })
 }
 
+resource "aws_kms_alias" "cloudwatch" {
+  name          = "alias/${var.environment}-cloudwatch-kms"
+  target_key_id = aws_kms_key.cloudwatch.id
+}
+
 # -----------------------------
-# VPC Flow Logs (Fix CKV2_AWS_11, CKV_AWS_158, CKV_AWS_338)
+# VPC Flow Logs (Fix CKV2_AWS_11 + CKV_AWS_158 + CKV_AWS_338)
 # -----------------------------
 resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
   name              = "/aws/vpc/${var.environment}-flow-logs"
-  retention_in_days = 365     # Fix CKV_AWS_338
-  kms_key_id        = aws_kms_key.cloudwatch.arn  # Fix CKV_AWS_158
+  retention_in_days = 365
+  kms_key_id        = aws_kms_key.cloudwatch.arn
 }
 
 resource "aws_iam_role" "vpc_flow_logs_role" {
@@ -59,7 +96,7 @@ resource "aws_iam_role" "vpc_flow_logs_role" {
 
 resource "aws_iam_role_policy_attachment" "vpc_flow_logs_role_policy" {
   role       = aws_iam_role.vpc_flow_logs_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonVPCFlowLogsRole"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
 }
 
 resource "aws_flow_log" "vpc_flow_log" {
@@ -99,7 +136,7 @@ resource "aws_internet_gateway" "gw" {
 }
 
 # ------------------------------------------------------------------
-# Key Pair - Create if missing and upload to S3 
+# Key Pair - Create if missing and upload to S3
 # ------------------------------------------------------------------
 resource "null_resource" "create_key_pair_if_missing" {
   provisioner "local-exec" {
@@ -113,7 +150,7 @@ resource "null_resource" "create_key_pair_if_missing" {
 }
 
 # -----------------------------
-# Public Subnets 
+# Public Subnets
 # -----------------------------
 resource "aws_subnet" "public" {
   count                   = length(var.public_subnets)
@@ -142,7 +179,7 @@ resource "aws_subnet" "private" {
 }
 
 # -----------------------------
-# NAT Gateway 
+# NAT Gateway
 # -----------------------------
 resource "aws_eip" "nat" {
   domain = "vpc"
@@ -193,3 +230,4 @@ resource "aws_route_table_association" "private" {
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private.id
 }
+
