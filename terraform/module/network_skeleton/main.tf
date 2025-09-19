@@ -19,11 +19,25 @@ resource "aws_vpc" "main" {
 }
 
 # -----------------------------
-# VPC Flow Logs (Fix CKV2_AWS_11)
+# KMS Key for CloudWatch Logs (Fix CKV_AWS_158)
+# -----------------------------
+resource "aws_kms_key" "cloudwatch" {
+  description             = "KMS key for CloudWatch log group encryption"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+
+  tags = merge(var.tags, {
+    Name = "${var.environment}-cw-kms"
+  })
+}
+
+# -----------------------------
+# VPC Flow Logs (Fix CKV2_AWS_11, CKV_AWS_158, CKV_AWS_338)
 # -----------------------------
 resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
   name              = "/aws/vpc/${var.environment}-flow-logs"
-  retention_in_days = 30
+  retention_in_days = 365     # Fix CKV_AWS_338
+  kms_key_id        = aws_kms_key.cloudwatch.arn  # Fix CKV_AWS_158
 }
 
 resource "aws_iam_role" "vpc_flow_logs_role" {
@@ -45,7 +59,7 @@ resource "aws_iam_role" "vpc_flow_logs_role" {
 
 resource "aws_iam_role_policy_attachment" "vpc_flow_logs_role_policy" {
   role       = aws_iam_role.vpc_flow_logs_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonVPCFlowLogsRole"
 }
 
 resource "aws_flow_log" "vpc_flow_log" {
