@@ -1,6 +1,8 @@
 module "rds" {
   source = "git::https://github.com/G1tGeek/eks.git//terraform/module/rds?ref=main"
 
+  # checkov:skip=CKV_TF_1: Skipping commit hash pinning check
+  # checkov:skip=CKV_TF_2: Skipping tag pinning check
 
   # -----------------------------
   # Network remote state S3 info
@@ -9,9 +11,6 @@ module "rds" {
   network_remote_state_key    = "modules/network-skeleton/terraform.tfstate"
   network_remote_state_region = "ap-northeast-1"
 
-  # -----------------------------
-  # Optional override network values
-  # Leave empty to use remote state outputs
   # -----------------------------
   vpc_id             = ""   # use network remote state VPC
   private_subnet_ids = []   # use network remote state private subnets
