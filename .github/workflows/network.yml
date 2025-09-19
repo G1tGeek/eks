@@ -10,10 +10,18 @@ on:
       - 'terraform/wrapper/compute/**'
       - 'terraform/module/rds/**'
       - 'terraform/wrapper/rds/**'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform action to run (apply or destroy)'
+        required: true
+        default: 'apply'
 
 jobs:
   terraform-network:
     runs-on: ubuntu-latest
+    env:
+      TF_WORKING_DIR: terraform/wrapper/network_skeleton
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -39,14 +47,20 @@ jobs:
           directory: terraform/wrapper/network_skeleton
 
       - name: Terraform Init
-        working-directory: terraform/wrapper/network_skeleton
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform init
 
       - name: Terraform Plan
-        working-directory: terraform/wrapper/network_skeleton
+        if: ${{ github.event.inputs.action == 'apply' }}
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform plan
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
-        working-directory: terraform/wrapper/network_skeleton
+        if: ${{ github.event.inputs.action == 'apply' && github.ref == 'refs/heads/main' }}
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform apply -auto-approve
+
+      - name: Terraform Destroy
+        if: ${{ github.event.inputs.action == 'destroy' && github.ref == 'refs/heads/main' }}
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform destroy -auto-approve
