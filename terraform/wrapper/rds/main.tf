@@ -14,7 +14,7 @@ module "rds" {
   # -----------------------------
   vpc_id             = ""   # use network remote state VPC
   private_subnet_ids = []   # use network remote state private subnets
-
+  account_id  = "130830900133"
   # -----------------------------
   # RDS configuration
   # -----------------------------
