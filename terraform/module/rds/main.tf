@@ -7,17 +7,19 @@ resource "aws_security_group" "rds_sg" {
   vpc_id      = var.vpc_id != "" ? var.vpc_id : data.terraform_remote_state.network.outputs.vpc_id
 
   ingress {
+    description = "Allow MySQL traffic from VPC CIDR"
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = ["10.0.0.0/25"]
   }
 
   egress {
+    description = "Restrict egress to VPC CIDR"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["10.0.0.0/25"]
   }
 
   tags = merge(var.tags, { Name = "${var.db_name}-sg" })
@@ -33,22 +35,55 @@ resource "aws_db_subnet_group" "rds_subnet_group" {
 }
 
 # -----------------------------
+# IAM Role for Enhanced Monitoring
+# -----------------------------
+resource "aws_iam_role" "rds_monitoring" {
+  name               = "${var.db_name}-rds-monitoring-role"
+  assume_role_policy = data.aws_iam_policy_document.rds_monitoring_assume.json
+}
+
+data "aws_iam_policy_document" "rds_monitoring_assume" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["monitoring.rds.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "rds_monitoring_attach" {
+  role       = aws_iam_role.rds_monitoring.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
+}
+
+# -----------------------------
 # RDS Instance
 # -----------------------------
 resource "aws_db_instance" "rds" {
-  identifier           = var.db_name
-  engine               = var.db_engine
-  engine_version       = var.db_engine_version
-  instance_class       = var.db_instance_class
-  username             = local.rds_credentials.username
-  password             = local.rds_credentials.password
-  allocated_storage    = 20
-  storage_type         = "gp2"
-  publicly_accessible  = false
-  skip_final_snapshot  = true
-  db_subnet_group_name = aws_db_subnet_group.rds_subnet_group.name
+  identifier             = var.db_name
+  engine                 = var.db_engine
+  engine_version         = var.db_engine_version
+  instance_class         = var.db_instance_class
+  username               = local.rds_credentials.username
+  password               = local.rds_credentials.password
+  allocated_storage      = 20
+  storage_type           = "gp2"
+  publicly_accessible    = false
+  skip_final_snapshot    = true
+  db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
-  multi_az             = var.multi_az
+  multi_az               = var.multi_az
+
+  storage_encrypted             = true
+  deletion_protection           = true
+  auto_minor_version_upgrade    = true
+  copy_tags_to_snapshot         = true
+  performance_insights_enabled  = true
+  monitoring_interval           = 60
+  monitoring_role_arn           = aws_iam_role.rds_monitoring.arn
+  enabled_cloudwatch_logs_exports = ["error", "general", "slowquery"]
 
   tags = merge(var.tags, { Name = var.db_name })
 }
