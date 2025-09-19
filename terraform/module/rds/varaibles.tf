@@ -63,3 +63,8 @@ variable "tags" {
   description = "Tags for RDS resources"
   type        = map(string)
 }
+
+variable "account_id" {
+  description = "AWS Account ID where RDS KMS key will be created"
+  type        = string
+}
