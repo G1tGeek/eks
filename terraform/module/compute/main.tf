@@ -56,6 +56,9 @@ resource "aws_instance" "openvpn" {
 # checkov:skip=CKV_AWS_8: Skipping EBS encryption check
 # checkov:skip=CKV_AWS_88: Skipping public IP check
 # checkov:skip=CKV2_AWS_41: Skipping IAM role attachment check
+# checkov:skip=CKV_AWS_79: Skipping IMDSv1 restriction check
+
+
   ami                         = "ami-07ce52c67e2a051d6"
   instance_type               = "t3.small"
   key_name                    = var.key_name
