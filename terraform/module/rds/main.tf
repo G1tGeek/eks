@@ -1,107 +1,4 @@
-# -----------------------------
-# Security Group for RDS
-# -----------------------------
-resource "aws_security_group" "rds_sg" {
-  name        = "${var.db_name}-sg"
-  description = "Security group for RDS instance"
-  vpc_id      = var.vpc_id != "" ? var.vpc_id : data.terraform_remote_state.network.outputs.vpc_id
-
-  ingress {
-    description = "Allow MySQL traffic from VPC CIDR"
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/25"]
-  }
-
-  egress {
-    description = "Restrict egress to VPC CIDR"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["10.0.0.0/25"]
-  }
-
-  tags = merge(var.tags, { Name = "${var.db_name}-sg" })
-}
-
-# -----------------------------
-# DB Subnet Group
-# -----------------------------
-resource "aws_db_subnet_group" "rds_subnet_group" {
-  name       = "${var.db_name}-subnet-group"
-  subnet_ids = length(var.private_subnet_ids) > 0 ? var.private_subnet_ids : data.terraform_remote_state.network.outputs.private_subnet_ids
-  tags       = merge(var.tags, { Name = "${var.db_name}-subnet-group" })
-}
-
-# -----------------------------
-# IAM Role for Enhanced Monitoring
-# -----------------------------
-resource "aws_iam_role" "rds_monitoring" {
-  name               = "${var.db_name}-rds-monitoring-role"
-  assume_role_policy = data.aws_iam_policy_document.rds_monitoring_assume.json
-}
-
-data "aws_iam_policy_document" "rds_monitoring_assume" {
-  statement {
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["monitoring.rds.amazonaws.com"]
-    }
-  }
-}
-
-resource "aws_iam_role_policy_attachment" "rds_monitoring_attach" {
-  role       = aws_iam_role.rds_monitoring.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
-}
-
-# -----------------------------
-# KMS Key for RDS
-# -----------------------------
-resource "aws_kms_key" "rds" {
-  description             = "KMS CMK for RDS storage and Performance Insights"
-  deletion_window_in_days = 7
-  enable_key_rotation     = true
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Id      = "key-default-1"
-    Statement = [
-      {
-        Sid       = "AllowRootAccountFullAccess"
-        Effect    = "Allow"
-        Principal = {
-          AWS = "arn:aws:iam::${var.account_id}:root"
-        }
-        Action   = "kms:*"
-        Resource = "*"
-      },
-      {
-        Sid       = "AllowRDSServiceUse"
-        Effect    = "Allow"
-        Principal = {
-          Service = "rds.amazonaws.com"
-        }
-        Action = [
-          "kms:Encrypt",
-          "kms:Decrypt",
-          "kms:GenerateDataKey*",
-          "kms:DescribeKey"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-
-  tags = merge(var.tags, { Name = "${var.db_name}-kms" })
-}
-
-# -----------------------------
 # RDS Instance
-# -----------------------------
 # checkov:skip=CKV_AWS_293: Deletion protection is intentionally disabled for RDS
 resource "aws_db_instance" "rds" {
   identifier             = var.db_name
@@ -118,7 +15,6 @@ resource "aws_db_instance" "rds" {
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   multi_az               = var.multi_az
 
-  # 🔐 Security & compliance
   storage_encrypted               = true
   kms_key_id                      = aws_kms_key.rds.arn
   auto_minor_version_upgrade      = true
