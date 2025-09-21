@@ -47,3 +47,18 @@ module "eks" {
   }
 }
 
+# ------------------------------------------------
+# Standalone EC2 instance for OpenVPN
+# ------------------------------------------------
+resource "aws_instance" "openvpn" {
+  ami                         = "ami-07ce52c67e2a051d6"
+  instance_type               = "t3.small"
+  key_name                    = var.key_name
+  subnet_id                   = data.terraform_remote_state.network.outputs.public_subnet_ids[0]
+  associate_public_ip_address = true
+
+  tags = {
+    Name        = "open-vpn"
+    Environment = var.environment
+  }
+}
