@@ -121,6 +121,7 @@ resource "aws_db_instance" "rds" {
   storage_encrypted               = true
   kms_key_id                      = aws_kms_key.rds.arn
   auto_minor_version_upgrade      = true
+  deletion_protection             = false
   copy_tags_to_snapshot           = true
   performance_insights_enabled    = true
   performance_insights_kms_key_id = aws_kms_key.rds.arn
