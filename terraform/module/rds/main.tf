@@ -102,6 +102,7 @@ resource "aws_kms_key" "rds" {
 # -----------------------------
 # RDS Instance
 # -----------------------------
+# checkov:skip=CKV_AWS_293: Deletion protection is intentionally disabled for RDS
 resource "aws_db_instance" "rds" {
   identifier             = var.db_name
   engine                 = var.db_engine
