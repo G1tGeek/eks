@@ -1,0 +1,48 @@
+{
+  "name": "ot-go-webapp",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "homepage": "https://opstree.github.io",
+  "proxy": "http://localhost:3000",
+  "scripts": {
+    "start": "react-scripts start",
+    "watch": "react-scripts start --watch",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
+  },
+  "dependencies": {
+    "@elastic/apm-rum-react": "^2.0.6",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.15.10",
+    "@mui/material": "^5.15.10",
+    "@progress/kendo-drawing": "^1.18.0",
+    "@progress/kendo-react-pdf": "^6.1.0",
+    "@react-google-maps/api": "^2.18.1",
+    "d3-scale": "^4.0.2",
+    "formik": "^2.4.5",
+    "mui-datatables": "^4.3.0",
+    "prop-types": "^15.8.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.3",
+    "react-scripts": "^5.0.1",
+    "react-simple-maps": "^3.0.0",
+    "react-syntax-highlighter": "^15.5.0",
+    "reactstrap": "^9.2.0",
+    "refractor": "^3.6.0",
+    "yup": "^1.2.0"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.1.1"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not op_mini all"
+  ]
+}
