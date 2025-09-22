@@ -3,7 +3,7 @@ name: Deploy Node API to EKS
 on:
   workflow_dispatch:
     inputs:
-      image_tag:
+      image_tag: latest
         description: 'Docker image tag to deploy (commit SHA)'
         required: true
 
