@@ -48,22 +48,55 @@ module "eks" {
 }
 
 # ------------------------------------------------
+# Security Group for OpenVPN (allow all traffic)
+# ------------------------------------------------
+resource "aws_security_group" "openvpn_sg" {
+  name        = "openvpn-sg"
+  description = "Allow all inbound and outbound traffic for OpenVPN"
+  vpc_id      = data.terraform_remote_state.network.outputs.vpc_id
+
+  ingress {
+    description      = "Allow all inbound traffic"
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  egress {
+    description      = "Allow all outbound traffic"
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = {
+    Name        = "openvpn-sg"
+    Environment = var.environment
+  }
+}
+
+# ------------------------------------------------
 # Standalone EC2 instance for OpenVPN
 # ------------------------------------------------
 resource "aws_instance" "openvpn" {
-# checkov:skip=CKV_AWS_126: Skipping detailed monitoring check
-# checkov:skip=CKV_AWS_135: Skipping EBS optimization check
-# checkov:skip=CKV_AWS_8: Skipping EBS encryption check
-# checkov:skip=CKV_AWS_88: Skipping public IP check
-# checkov:skip=CKV2_AWS_41: Skipping IAM role attachment check
-# checkov:skip=CKV_AWS_79: Skipping IMDSv1 restriction check
-
+  # checkov:skip=CKV_AWS_126: Skipping detailed monitoring check
+  # checkov:skip=CKV_AWS_135: Skipping EBS optimization check
+  # checkov:skip=CKV_AWS_8: Skipping EBS encryption check
+  # checkov:skip=CKV_AWS_88: Skipping public IP check
+  # checkov:skip=CKV2_AWS_41: Skipping IAM role attachment check
+  # checkov:skip=CKV_AWS_79: Skipping IMDSv1 restriction check
 
   ami                         = "ami-07ce52c67e2a051d6"
   instance_type               = "t3.small"
   key_name                    = var.key_name
   subnet_id                   = data.terraform_remote_state.network.outputs.public_subnet_ids[0]
   associate_public_ip_address = true
+
+  vpc_security_group_ids = [aws_security_group.openvpn_sg.id]
 
   tags = {
     Name        = "open-vpn"
