@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: 'Docker image tag to deploy (commit SHA)'
+        description: 'Docker image tag to deploy'
         required: true
         default: latest
 
@@ -29,9 +29,9 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Install kubectl
-        uses: aws-actions/setup-kubectl@v3
+        uses: azure/setup-kubectl@v4
         with:
-          version: 'latest' 
+          version: latest  # always installs the latest stable kubectl
 
       - name: Update kubeconfig
         run: |
@@ -40,7 +40,7 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.14.0
+          version: latest  
 
       - name: Deploy Node API via Helm
         run: |
