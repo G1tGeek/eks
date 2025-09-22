@@ -10,7 +10,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: amazonlinux-2023  # Amazon Linux runner
     env:
       AWS_REGION: ap-northeast-1
       ECR_REPOSITORY: node-api
@@ -29,9 +29,9 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Install kubectl
-        uses: azure/setup-kubectl@v4
+        uses: aws-actions/setup-kubectl@v3
         with:
-          version: '1.28.0'
+          version: 'latest'  # automatically picks compatible version for EKS
 
       - name: Update kubeconfig
         run: |
