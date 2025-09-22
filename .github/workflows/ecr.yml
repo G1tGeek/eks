@@ -1,0 +1,63 @@
+name: Terraform ECR
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'terraform/module/ecr/**'
+      - 'terraform/wrapper/ecr/**'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform action to run (apply or destroy)'
+        required: true
+        default: 'apply'
+
+jobs:
+  terraform-ecr:
+    runs-on: ubuntu-latest
+    env:
+      TF_WORKING_DIR: terraform/wrapper/ecr
+      ACTION: ${{ github.event_name == 'push' && 'apply' || github.event.inputs.action }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Run Checkov on ECR module
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform/module/ecr
+
+      - name: Run Checkov on ECR wrapper
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform/wrapper/ecr
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init
+
+      - name: Terraform Plan
+        if: ${{ env.ACTION == 'apply' }}
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform plan
+
+      - name: Terraform Apply
+        if: ${{ env.ACTION == 'apply' && github.ref == 'refs/heads/main' }}
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform apply -auto-approve
+
+      - name: Terraform Destroy
+        if: ${{ env.ACTION == 'destroy' && github.ref == 'refs/heads/main' }}
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform destroy -auto-approve
