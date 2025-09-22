@@ -1,0 +1,35 @@
+replicaCount: 1
+
+image:
+  repository: <130830900133.dkr.ecr.ap-northeast-1.amazonaws.com/node-api"
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 3000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+env: 
+  - name: NODE_ENV
+    value: production
+
+livenessProbe:
+  path: /
+  port: 3000
+  initialDelaySeconds: 10
+  periodSeconds: 10
+
+readinessProbe:
+  path: /ready
+  port: 3000
+  initialDelaySeconds: 5
+  periodSeconds: 5
