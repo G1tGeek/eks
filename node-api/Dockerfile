@@ -1,19 +1,27 @@
-FROM node:16.15.1
+FROM node:16.20.0-bullseye-slim
 
-MAINTAINER Opstree Solutions
+LABEL maintainer="Yuvraj"
 
-COPY . /app
+WORKDIR /app
 
-WORKDIR /app/
+# Copy package files for caching
+COPY package*.json ./
 
-RUN apt-get update -y && \
-    apt-get install git -y
+# Install dependencies
+RUN npm install
 
-RUN npm install 
+# Copy everything
+COPY . .
 
-RUN npm run build
+# Install git if needed
+RUN apt-get update -y && apt-get install -y git --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN yarn global add serve
+# Build app using Makefile
+RUN make build
+
+# Install serve globally
+RUN npm install -g serve
 
 EXPOSE 3000
 
