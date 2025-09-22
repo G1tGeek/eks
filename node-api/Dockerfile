@@ -1,33 +1,20 @@
-# Base image
-FROM node:16.20.0-bullseye-slim
-
-LABEL maintainer="Opstree Solutions"
+# Use official Node.js LTS image
+FROM node:18
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files first for caching
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install npm dependencies
-RUN npm install
+# Install npm dependencies (ignoring peer dependency conflicts)
+RUN npm install --legacy-peer-deps
 
 # Copy the rest of the application
 COPY . .
 
-# Install git and make
-RUN apt-get update -y && \
-    apt-get install -y git make --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/*
-
-# Build the app using Makefile
-RUN make build
-
-# Install serve globally
-RUN npm install -g serve
-
-# Expose port
+# Expose the application port
 EXPOSE 3000
 
-# Start app
-ENTRYPOINT ["serve", "-s", "build"]
+# Default command to start the application
+CMD ["npm", "start"]
