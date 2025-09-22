@@ -1,63 +1,48 @@
-name: Build & Deploy Node API
+name: Build and Push Node API to ECR
 
 on:
   push:
-    paths:
-      - 'node-api/**'
-  workflow_dispatch:
+    branches:
+      - main
 
 jobs:
-  build-push-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
-    env:
-      AWS_REGION: ap-northeast-1
-      ECR_REPOSITORY: node-api
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+      # Step 1: Checkout repo
+      - name: Checkout code
+        uses: actions/checkout@v4
 
+      # Step 2: Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ap-northeast-1
 
+      # Step 3: Login to Amazon ECR
       - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build & Tag Docker Image
+      # Step 4: Build Docker image
+      - name: Build Docker image
         run: |
-          ECR_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${ECR_REPOSITORY}
-          IMAGE_TAG=${GITHUB_SHA}
-          docker build -t $ECR_URI:$IMAGE_TAG node-api
-          docker tag $ECR_URI:$IMAGE_TAG $ECR_URI:latest
+          docker build -t node-api:latest .
 
-      - name: Push Docker Image to ECR
+      # Step 5: Tag image for ECR
+      - name: Tag Docker image
         run: |
-          ECR_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${ECR_REPOSITORY}
-          IMAGE_TAG=${GITHUB_SHA}
-          docker push $ECR_URI:$IMAGE_TAG
-          docker push $ECR_URI:latest
+          docker tag node-api:latest ${{ secrets.ECR_REGISTRY }}/node-api:latest
 
-      - name: Install kubectl
-        uses: azure/setup-kubectl@v4
-        with:
-          version: '1.28.0'
-
-      - name: Update kubeconfig
+      # Step 6: Push image to ECR
+      - name: Push Docker image to ECR
         run: |
-          aws eks --region ${AWS_REGION} update-kubeconfig --name eks-cluster
+          docker push ${{ secrets.ECR_REGISTRY }}/node-api:latest
 
-      - name: Install Helm
-        uses: azure/setup-helm@v4
-        with:
-          version: v3.14.0
-
-      - name: Deploy Node API via Helm
+      # Step 7: Verify image in ECR
+      - name: Verify Docker image in ECR
         run: |
-          helm upgrade --install node-api helm/node-api \
-            --set image.repository=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/node-api \
-            --set image.tag=${GITHUB_SHA} \
-            --namespace default --create-namespace
+          aws ecr describe-images --repository-name node-api --image-ids imageTag=latest
