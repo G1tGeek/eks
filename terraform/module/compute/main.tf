@@ -6,6 +6,30 @@ data "aws_vpc" "eks_vpc" {
 }
 
 # ------------------------------------------------
+# Launch Templates for Ubuntu 22.04 Nodes
+# ------------------------------------------------
+resource "aws_launch_template" "ubuntu_node" {
+  for_each = var.node_groups
+
+  name_prefix   = "ubuntu22-${each.key}-"
+  image_id      = "ami-0d88b56ff2c65082e" # Ubuntu 22.04 AMI
+  instance_type = each.value.instance_types[0]
+  key_name      = var.key_name
+
+  network_interfaces {
+    associate_public_ip_address = false
+    subnet_id                   = data.terraform_remote_state.network.outputs.private_subnet_ids[0]
+  }
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "eks-ubuntu-node-${each.key}"
+    }
+  }
+}
+
+# ------------------------------------------------
 # EKS Cluster
 # ------------------------------------------------
 module "eks" {
@@ -29,7 +53,12 @@ module "eks" {
       min_size       = ng.min_size
       instance_types = ng.instance_types
       subnet_ids     = data.terraform_remote_state.network.outputs.private_subnet_ids
-      key_name       = var.key_name
+
+      # Use launch template with Ubuntu 22 AMI
+      launch_template = {
+        id      = aws_launch_template.ubuntu_node[ng_name].id
+        version = "$Latest"
+      }
     }
   }
 
