@@ -1,5 +1,5 @@
 # Use a maintained Node 16 image based on Debian Bullseye
-FROM node:16-bullseye
+FROM node:18
 
 # Set working directory
 WORKDIR /app
