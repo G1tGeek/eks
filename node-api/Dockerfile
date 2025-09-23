@@ -3,12 +3,12 @@ FROM node:16-bullseye
 WORKDIR /app
 
 # Copy package files first
-COPY package.json package-lock.json* ./
+COPY package.json ./
 
-# Clean install dependencies
-RUN npm ci --legacy-peer-deps
+# Install dependencies ignoring peer conflicts
+RUN npm install --legacy-peer-deps
 
-# Copy rest of the app
+# Copy the rest of the app
 COPY . .
 
 # Build React app
