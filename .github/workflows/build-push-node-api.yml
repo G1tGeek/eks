@@ -1,13 +1,26 @@
-name: Build & Deploy Node API to ECR
+name: Build, Deploy, or Remove Node API in ECR
 
 on:
   push:
     paths:
       - 'node-api/**'
   workflow_dispatch:
+    inputs:
+      action:
+        description: 'Choose build-push or remove'
+        required: true
+        default: 'build-push'
+        type: choice
+        options:
+          - build-push
+          - remove
+      image_tag:
+        description: 'Docker image tag to build or remove'
+        required: false
+        default: latest
 
 jobs:
-  build-push-deploy:
+  manage-ecr-image:
     runs-on: ubuntu-latest
     env:
       AWS_REGION: ap-northeast-1
@@ -27,16 +40,22 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build & Tag Docker Image
+      - name: Build & Push Docker Image
+        if: ${{ github.event.inputs.action == 'build-push' }}
         run: |
           ECR_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${ECR_REPOSITORY}
-          IMAGE_TAG=${GITHUB_SHA}
+          IMAGE_TAG=${{ github.event.inputs.image_tag }}
           docker build -t $ECR_URI:$IMAGE_TAG node-api
           docker tag $ECR_URI:$IMAGE_TAG $ECR_URI:latest
-
-      - name: Push Docker Image to ECR
-        run: |
-          ECR_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${ECR_REPOSITORY}
-          IMAGE_TAG=${GITHUB_SHA}
           docker push $ECR_URI:$IMAGE_TAG
           docker push $ECR_URI:latest
+
+      - name: Remove Docker Image from ECR
+        if: ${{ github.event.inputs.action == 'remove' }}
+        run: |
+          ECR_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${ECR_REPOSITORY}
+          IMAGE_TAG=${{ github.event.inputs.image_tag }}
+          echo "Deleting image $ECR_URI:$IMAGE_TAG from ECR"
+          aws ecr batch-delete-image \
+            --repository-name ${ECR_REPOSITORY} \
+            --image-ids imageTag=$IMAGE_TAG || echo "Image not found"
