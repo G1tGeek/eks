@@ -1,4 +1,4 @@
-name: Manage Node API on EKS
+name: Deploy Node API on EKS
 
 on:
   workflow_dispatch:
