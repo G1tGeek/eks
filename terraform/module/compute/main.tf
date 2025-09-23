@@ -27,6 +27,12 @@ resource "aws_launch_template" "ubuntu_node" {
       Name = "eks-ubuntu-node-${each.key}"
     }
   }
+
+  # Enforce IMDSv2 only
+  metadata_options {
+    http_tokens                = "required"
+    http_put_response_hop_limit = 2
+  }
 }
 
 # ------------------------------------------------
