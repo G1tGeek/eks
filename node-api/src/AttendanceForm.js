@@ -1,4 +1,3 @@
-
 import react, * as React from "react";
 import { Page, Grid } from "tabler-react";
 import SiteWrapper from "./SiteWrapper.react";
@@ -17,7 +16,7 @@ const AttendanceForm = ({ values, handleChange, handleSubmit, errors, touched, i
             {touched.id && errors.id && <p className="red">{errors.id}</p>}
             <Label for="id">Employee ID</Label>
             <Input 
-              type="text" 
+              type="number" 
               name="id"
               value={values.id}
               onChange={handleChange}
@@ -25,20 +24,7 @@ const AttendanceForm = ({ values, handleChange, handleSubmit, errors, touched, i
               placeholder="Employee ID" 
             />
           </FormGroup>
-         <FormGroup>
-  {touched.name && errors.name && <p className="red">{errors.name}</p>}
-  <Label for="name">Name</Label>
-  <Input
-    type="text"
-    name="name"
-    id="name"
-    placeholder="Employee Name"
-    value={values.name}
-    onChange={handleChange}
-  />
-</FormGroup>
-           
-           <FormGroup>
+          <FormGroup>
             {touched.status && errors.status && <p className="red">{errors.status}</p>}
             <Label for="status">Status</Label>
             <Input type="select" name="status" id="status" value={values.status} onChange={handleChange}>
@@ -60,7 +46,7 @@ const AttendanceForm = ({ values, handleChange, handleSubmit, errors, touched, i
               onChange={handleChange}
             />
           </FormGroup>
-          <Button color="primary" type="submit" disabled={isSubmitting}>Submit</Button>
+          <Button color="primary" disabled={isSubmitting}>Submit</Button>
         </Form>
     </Grid.Col>
     </SiteWrapper>
@@ -68,24 +54,16 @@ const AttendanceForm = ({ values, handleChange, handleSubmit, errors, touched, i
 }
 
 const FormikApp = withFormik({
-//  mapPropsToValues({ username, password }) {
-  //  return { username, password }
- mapPropsToValues() {
-    return {
-      id: '',
-      name:'',
-      status: '',
-      date: ''
-    }
+  mapPropsToValues({ username, password }) {
+    return { username, password }
   },
   handleSubmit(values, { props, resetForm, setErrors, setSubmitting }) {
     console.log(JSON.stringify(values))
-    fetch('http://54.165.93.34:8082/api/v1/attendance/create', {
+    fetch('/attendance/create', {
       method: 'POST',
-      body: JSON.stringify({ id: values.id, name: values.name,status: values.status,date: values.date}),
+      body: JSON.stringify(values),
       headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Content-Type': 'application/json'
     }})
   }
 })(AttendanceForm);

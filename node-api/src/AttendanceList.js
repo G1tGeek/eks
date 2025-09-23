@@ -10,7 +10,7 @@ class ListEmployee extends React.Component {
 	}
 	
 	loadData() {
-		fetch('http://54.165.93.34:8082/api/v1/attendance/search/all')
+		fetch('/attendance/search')
 			.then(response => response.json())
 			.then(data => {
 				this.setState({data: data })
@@ -32,8 +32,7 @@ class ListEmployee extends React.Component {
           <Table>
             <Table.Header>
                  <Table.ColHeader>Employee ID</Table.ColHeader>
-<Table.ColHeader>Employee Name</Table.ColHeader>            
-     <Table.ColHeader>Status</Table.ColHeader>
+                 <Table.ColHeader>Status</Table.ColHeader>
                  <Table.ColHeader>Date</Table.ColHeader>
             </Table.Header>
             <Table.Body>
@@ -41,8 +40,7 @@ class ListEmployee extends React.Component {
                 return (
                     <Table.Row>
                         <Table.Col>{item.id}</Table.Col>
-<Table.Col>{item.name}</Table.Col>                      
-  <Table.Col>{item.status}</Table.Col>
+                        <Table.Col>{item.status}</Table.Col>
                         <Table.Col>{item.date}</Table.Col>
                     </Table.Row>  
                 );

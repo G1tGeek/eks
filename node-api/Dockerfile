@@ -1,21 +1,20 @@
-FROM node:16-bullseye
+FROM node:16.15.1
 
-WORKDIR /app
+MAINTAINER Opstree Solutions
 
-# Copy package files first
-COPY package.json ./
+COPY . /app
 
-# Install dependencies ignoring peer conflicts
-RUN npm install --legacy-peer-deps
+WORKDIR /app/
 
-# Copy the rest of the app
-COPY . .
+RUN apt-get update -y && \
+    apt-get install git -y
 
-# Build React app
+RUN npm install 
+
 RUN npm run build
 
-# Install serve globally
 RUN yarn global add serve
 
 EXPOSE 3000
+
 ENTRYPOINT ["serve", "-s", "build"]
