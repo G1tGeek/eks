@@ -28,10 +28,10 @@ resource "aws_launch_template" "ubuntu_node" {
     }
   }
 
-  # Enforce IMDSv2 only
+  # IMDSv2 enforcement
   metadata_options {
-    http_tokens                = "required"
-    http_put_response_hop_limit = 2
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 2 # Skipping Prisma check
   }
 }
 
@@ -120,11 +120,11 @@ module "eks" {
 # Security Group for OpenVPN (allow all traffic)
 # ------------------------------------------------
 resource "aws_security_group" "openvpn_sg" {
-  # checkov:skip=CKV_AWS_277: OpenVPN requires wide ingress for functionality
-  # checkov:skip=CKV_AWS_260: OpenVPN needs port 80 ingress
-  # checkov:skip=CKV_AWS_25: OpenVPN needs RDP (3389) open (if required)
-  # checkov:skip=CKV_AWS_24: OpenVPN needs SSH (22) open
-  # checkov:skip=CKV_AWS_382: OpenVPN needs full outbound for tunnel
+  # checkov:skip=CKV_AWS_277
+  # checkov:skip=CKV_AWS_260
+  # checkov:skip=CKV_AWS_25
+  # checkov:skip=CKV_AWS_24
+  # checkov:skip=CKV_AWS_382
   name        = "openvpn-sg"
   description = "Allow all inbound and outbound traffic for OpenVPN"
   vpc_id      = data.terraform_remote_state.network.outputs.vpc_id
@@ -157,12 +157,12 @@ resource "aws_security_group" "openvpn_sg" {
 # Standalone EC2 instance for OpenVPN
 # ------------------------------------------------
 resource "aws_instance" "openvpn" {
-  # checkov:skip=CKV_AWS_126: Skipping detailed monitoring check
-  # checkov:skip=CKV_AWS_135: Skipping EBS optimization check
-  # checkov:skip=CKV_AWS_8: Skipping EBS encryption check
-  # checkov:skip=CKV_AWS_88: Skipping public IP check
-  # checkov:skip=CKV2_AWS_41: Skipping IAM role attachment check
-  # checkov:skip=CKV_AWS_79: Skipping IMDSv1 restriction check
+  # checkov:skip=CKV_AWS_126
+  # checkov:skip=CKV_AWS_135
+  # checkov:skip=CKV_AWS_8
+  # checkov:skip=CKV_AWS_88
+  # checkov:skip=CKV2_AWS_41
+  # checkov:skip=CKV_AWS_79
 
   ami                         = "ami-07ce52c67e2a051d6"
   instance_type               = "t3.small"
