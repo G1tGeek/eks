@@ -6,41 +6,10 @@ data "aws_vpc" "eks_vpc" {
 }
 
 # ------------------------------------------------
-# Launch Templates for Ubuntu 22.04 Nodes
-# ------------------------------------------------
-resource "aws_launch_template" "ubuntu_node" {
-  # checkov:skip=CKV_AWS_341: Skipping hop limit check
-  for_each = var.node_groups
-
-  name_prefix   = "ubuntu22-${each.key}-"
-  image_id      = "ami-0d88b56ff2c65082e" # Ubuntu 22.04 AMI
-  instance_type = each.value.instance_types[0]
-  key_name      = var.key_name
-
-  network_interfaces {
-    associate_public_ip_address = false
-    subnet_id                   = data.terraform_remote_state.network.outputs.private_subnet_ids[0]
-  }
-
-  tag_specifications {
-    resource_type = "instance"
-    tags = {
-      Name = "eks-ubuntu-node-${each.key}"
-    }
-  }
-
-  # IMDSv2 enforcement
-  metadata_options {
-    http_tokens                 = "required"
-    http_put_response_hop_limit = 2 # Skipping Prisma check
-  }
-}
-
-# ------------------------------------------------
-# EKS Cluster
+# EKS Cluster (using default managed node groups)
 # ------------------------------------------------
 module "eks" {
-  # checkov:skip=CKV_TF_1: Registry module version is pinned, commit hash not applicable
+  # checkov:skip=CKV_TF_1: Registry module version is pinned
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
 
@@ -52,6 +21,9 @@ module "eks" {
   cluster_endpoint_private_access = var.cluster_endpoint_private_access
   cluster_endpoint_public_access  = var.cluster_endpoint_public_access
 
+  # -------------------------------
+  # Managed Node Groups (default)
+  # -------------------------------
   eks_managed_node_groups = {
     for ng_name, ng in var.node_groups :
     ng_name => {
@@ -60,12 +32,7 @@ module "eks" {
       min_size       = ng.min_size
       instance_types = ng.instance_types
       subnet_ids     = data.terraform_remote_state.network.outputs.private_subnet_ids
-
-      # Use launch template with Ubuntu 22 AMI + keypair
-      launch_template = {
-        id      = aws_launch_template.ubuntu_node[ng_name].id
-        version = "$Latest"
-      }
+      key_name       = var.key_name
     }
   }
 
@@ -121,11 +88,6 @@ module "eks" {
 # Security Group for OpenVPN (allow all traffic)
 # ------------------------------------------------
 resource "aws_security_group" "openvpn_sg" {
-  # checkov:skip=CKV_AWS_277
-  # checkov:skip=CKV_AWS_260
-  # checkov:skip=CKV_AWS_25
-  # checkov:skip=CKV_AWS_24
-  # checkov:skip=CKV_AWS_382
   name        = "openvpn-sg"
   description = "Allow all inbound and outbound traffic for OpenVPN"
   vpc_id      = data.terraform_remote_state.network.outputs.vpc_id
@@ -158,13 +120,6 @@ resource "aws_security_group" "openvpn_sg" {
 # Standalone EC2 instance for OpenVPN
 # ------------------------------------------------
 resource "aws_instance" "openvpn" {
-  # checkov:skip=CKV_AWS_126
-  # checkov:skip=CKV_AWS_135
-  # checkov:skip=CKV_AWS_8
-  # checkov:skip=CKV_AWS_88
-  # checkov:skip=CKV2_AWS_41
-  # checkov:skip=CKV_AWS_79
-
   ami                         = "ami-07ce52c67e2a051d6"
   instance_type               = "t3.small"
   key_name                    = var.key_name
