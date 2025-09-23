@@ -6,10 +6,9 @@ image:
   pullPolicy: IfNotPresent
 
 service:
-  type: NodePort
+  type: LoadBalancer   # changed from NodePort
   port: 80
   targetPort: 3000
-  nodePort: 30080   # <-- fixed NodePort
 
 resources:
   requests:
@@ -36,4 +35,4 @@ readinessProbe:
   periodSeconds: 5
 
 nodeSelector:
-  app: nodejs
+  app: nodejs   # ensures this pod lands only on nodes with label "app=nodejs"
