@@ -54,25 +54,27 @@ module "eks" {
   # -------------------------
   # Security Group Rules
   # -------------------------
-  cluster_additional_sg_ingress = [
-    {
+  cluster_security_group_additional_rules = {
+    allow_all_vpc = {
       description = "Allow all traffic from same VPC"
+      protocol    = "-1"
       from_port   = 0
       to_port     = 0
-      protocol    = "-1"
+      type        = "ingress"
       cidr_blocks = [data.aws_vpc.eks_vpc.cidr_block]
     }
-  ]
+  }
 
-  node_additional_sg_ingress = [
-    {
+  node_security_group_additional_rules = {
+    ssh_from_vpc = {
       description = "Allow SSH from same VPC"
+      protocol    = "tcp"
       from_port   = 22
       to_port     = 22
-      protocol    = "tcp"
+      type        = "ingress"
       cidr_blocks = [data.aws_vpc.eks_vpc.cidr_block]
     }
-  ]
+  }
 
   tags = {
     Environment = var.environment
