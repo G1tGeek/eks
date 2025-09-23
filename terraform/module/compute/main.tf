@@ -9,7 +9,7 @@ data "aws_vpc" "eks_vpc" {
 # Launch Templates for Ubuntu 22.04 Nodes
 # ------------------------------------------------
 resource "aws_launch_template" "ubuntu_node" {
-# checkov:skip=CKV_AWS_341: Skipping hop limit check
+  # checkov:skip=CKV_AWS_341: Skipping hop limit check
   for_each = var.node_groups
 
   name_prefix   = "ubuntu22-${each.key}-"
@@ -61,7 +61,7 @@ module "eks" {
       instance_types = ng.instance_types
       subnet_ids     = data.terraform_remote_state.network.outputs.private_subnet_ids
 
-      # Use launch template with Ubuntu 22 AMI
+      # Use launch template with Ubuntu 22 AMI + keypair
       launch_template = {
         id      = aws_launch_template.ubuntu_node[ng_name].id
         version = "$Latest"
