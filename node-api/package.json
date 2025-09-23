@@ -35,7 +35,7 @@
     "react-syntax-highlighter": "^15.5.0",
     "reactstrap": "^9.2.0",
     "refractor": "^3.6.0",
-    "yup": "^1.2.0",
+    "yup": "^1.2.0"
   },
   "devDependencies": {
     "gh-pages": "^6.1.1"
