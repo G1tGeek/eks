@@ -6,9 +6,10 @@ image:
   pullPolicy: IfNotPresent
 
 service:
-  type: LoadBalancer
+  type: NodePort
   port: 80
   targetPort: 3000
+  nodePort: 30080   # <-- fixed NodePort
 
 resources:
   requests:
@@ -34,6 +35,5 @@ readinessProbe:
   initialDelaySeconds: 5
   periodSeconds: 5
 
-# Node selector to deploy only on the node named 'nodejs'
 nodeSelector:
   app: nodejs
