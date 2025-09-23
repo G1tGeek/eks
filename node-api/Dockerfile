@@ -1,20 +1,10 @@
-# Use official Node.js LTS image
-FROM node:18
-
-# Set working directory
-WORKDIR /app
-
-# Copy package.json and package-lock.json
-COPY package*.json ./
-
-# Install npm dependencies (ignoring peer dependency conflicts)
-RUN npm install --legacy-peer-deps
-
-# Copy the rest of the application
-COPY . .
-
-# Expose the application port
+FROM node:16.15.1
+COPY . /app
+WORKDIR /app/
+RUN apt-get update -y && \
+    apt-get install git -y
+RUN npm install
+RUN npm run build
+RUN yarn global add serve
 EXPOSE 3000
-
-# Default command to start the application
-CMD ["npm", "start"]
+ENTRYPOINT ["serve", "-s", "build"]
