@@ -1,4 +1,4 @@
-name: Build, Deploy, or Remove Node API in ECR
+name: Build/Remove Node API
 
 on:
   push:
