@@ -1,42 +1,32 @@
 # Use Amazon Linux 2 as base image
 FROM amazonlinux:2
 
-# Install required dependencies
+# Install dependencies
 RUN yum update -y && \
-    yum install -y \
-      git \
-      tar \
-      gzip \
-      curl \
-      which \
-      gzip \
-      bzip2 \
-      xz \
-      sudo \
-      make \
-      gcc-c++ \
-      python3 && \
+    yum install -y git curl gcc-c++ make python3 tar gzip bzip2 xz sudo && \
     yum clean all
 
-# Install Node.js (16.x) using NodeSource
+# Install Node.js 16.x
 RUN curl -fsSL https://rpm.nodesource.com/setup_16.x | bash - && \
     yum install -y nodejs && \
     npm install -g yarn && \
     node -v && npm -v && yarn -v
 
-# Copy app files
-COPY . /app
+# Set working directory
 WORKDIR /app
 
-# Install dependencies and build
+# Copy application files
+COPY . .
+
+# Install dependencies & build
 RUN npm install
 RUN npm run build
 
-# Install 'serve' globally
+# Install serve globally
 RUN yarn global add serve
 
 # Expose port
 EXPOSE 3000
 
-# Start the app
+# Start app
 ENTRYPOINT ["serve", "-s", "build"]
