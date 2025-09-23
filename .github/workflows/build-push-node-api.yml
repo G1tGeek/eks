@@ -1,4 +1,4 @@
-name: Build & Deploy Node API
+name: Build & Deploy Node API to ECR
 
 on:
   push:
