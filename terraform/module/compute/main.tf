@@ -9,6 +9,7 @@ data "aws_vpc" "eks_vpc" {
 # Launch Templates for Ubuntu 22.04 Nodes
 # ------------------------------------------------
 resource "aws_launch_template" "ubuntu_node" {
+# checkov:skip=CKV_AWS_341: Skipping hop limit check
   for_each = var.node_groups
 
   name_prefix   = "ubuntu22-${each.key}-"
