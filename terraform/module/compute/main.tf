@@ -1,6 +1,15 @@
+# ------------------------------------------------
+# Fetch VPC CIDR (for SG rules)
+# ------------------------------------------------
+data "aws_vpc" "eks_vpc" {
+  id = data.terraform_remote_state.network.outputs.vpc_id
+}
+
+# ------------------------------------------------
+# EKS Cluster
+# ------------------------------------------------
 module "eks" {
   # checkov:skip=CKV_TF_1: Registry module version is pinned, commit hash not applicable
-
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
 
@@ -42,6 +51,29 @@ module "eks" {
     }
   }
 
+  # -------------------------
+  # Security Group Rules
+  # -------------------------
+  cluster_additional_sg_ingress = [
+    {
+      description = "Allow all traffic from same VPC"
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = [data.aws_vpc.eks_vpc.cidr_block]
+    }
+  ]
+
+  node_additional_sg_ingress = [
+    {
+      description = "Allow SSH from same VPC"
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = [data.aws_vpc.eks_vpc.cidr_block]
+    }
+  ]
+
   tags = {
     Environment = var.environment
   }
@@ -51,11 +83,11 @@ module "eks" {
 # Security Group for OpenVPN (allow all traffic)
 # ------------------------------------------------
 resource "aws_security_group" "openvpn_sg" {
-# checkov:skip=CKV_AWS_277: OpenVPN requires wide ingress for functionality
-# checkov:skip=CKV_AWS_260: OpenVPN needs port 80 ingress
-# checkov:skip=CKV_AWS_25: OpenVPN needs RDP (3389) open (if required)
-# checkov:skip=CKV_AWS_24: OpenVPN needs SSH (22) open
-# checkov:skip=CKV_AWS_382: OpenVPN needs full outbound for tunnel
+  # checkov:skip=CKV_AWS_277: OpenVPN requires wide ingress for functionality
+  # checkov:skip=CKV_AWS_260: OpenVPN needs port 80 ingress
+  # checkov:skip=CKV_AWS_25: OpenVPN needs RDP (3389) open (if required)
+  # checkov:skip=CKV_AWS_24: OpenVPN needs SSH (22) open
+  # checkov:skip=CKV_AWS_382: OpenVPN needs full outbound for tunnel
   name        = "openvpn-sg"
   description = "Allow all inbound and outbound traffic for OpenVPN"
   vpc_id      = data.terraform_remote_state.network.outputs.vpc_id
