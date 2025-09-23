@@ -1,16 +1,24 @@
-name: Deploy Node API to EKS
+name: Manage Node API on EKS
 
 on:
   workflow_dispatch:
     inputs:
-      image_tag:
-        description: 'Docker image tag to deploy'
+      action:
+        description: 'Choose deploy or remove'
         required: true
+        default: 'deploy'
+        type: choice
+        options:
+          - deploy
+          - remove
+      image_tag:
+        description: 'Docker image tag to deploy (ignored if removing)'
+        required: false
         default: latest
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest  
+  manage:
+    runs-on: ubuntu-latest
     env:
       AWS_REGION: ap-northeast-1
       ECR_REPOSITORY: node-api
@@ -31,7 +39,7 @@ jobs:
       - name: Install kubectl
         uses: azure/setup-kubectl@v4
         with:
-          version: latest  # always installs the latest stable kubectl
+          version: latest
 
       - name: Update kubeconfig
         run: |
@@ -40,12 +48,18 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
         with:
-          version: latest  
+          version: latest
 
-      - name: Deploy Node API via Helm
+      - name: Deploy Node API
+        if: ${{ github.event.inputs.action == 'deploy' }}
         run: |
           IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${ECR_REPOSITORY}
           helm upgrade --install node-api ${HELM_CHART_PATH} \
             --namespace ${K8S_NAMESPACE} --create-namespace \
             --set image.repository=$IMAGE_URI \
             --set image.tag=${{ github.event.inputs.image_tag }}
+
+      - name: Remove Node API
+        if: ${{ github.event.inputs.action == 'remove' }}
+        run: |
+          helm uninstall node-api --namespace ${K8S_NAMESPACE} || echo "No release found to delete"
