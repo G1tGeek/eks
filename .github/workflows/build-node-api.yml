@@ -2,7 +2,7 @@ name: Build & Push Docker Image
 
 on:
   workflow_run:
-    workflows: ["SAST Scan"]   
+    workflows: ["SAST Scan for Node API"]   
     types:
       - completed
 
