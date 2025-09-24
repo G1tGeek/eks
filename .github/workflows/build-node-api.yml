@@ -33,7 +33,13 @@ jobs:
           ECR_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${ECR_REPOSITORY}
           IMAGE_TAG=${{ github.sha }}
           echo "Building and pushing image: $ECR_URI:$IMAGE_TAG"
+
+          # Build image
           docker build -t $ECR_URI:$IMAGE_TAG node-api
-          docker tag $ECR_URI:$IMAGE_TAG $ECR_URI:latest
+
+          # Push only the commit SHA tag to avoid immutable tag conflicts
           docker push $ECR_URI:$IMAGE_TAG
-          docker push $ECR_URI:latest
+
+          # Optional: push 'latest' only if tag immutability is disabled
+          # docker tag $ECR_URI:$IMAGE_TAG $ECR_URI:latest
+          # docker push $ECR_URI:latest
