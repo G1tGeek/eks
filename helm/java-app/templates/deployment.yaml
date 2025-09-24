@@ -25,20 +25,42 @@ spec:
             - name: {{ .name }}
               value: {{ .value | quote }}
             {{- end }}
+
+          # Liveness Probe
+          {{- if .Values.livenessProbe.tcpSocket }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.livenessProbe.tcpSocket.port }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          {{- else if .Values.livenessProbe.path }}
           livenessProbe:
             httpGet:
               path: {{ .Values.livenessProbe.path }}
               port: {{ .Values.livenessProbe.port }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          {{- end }}
+
+          # Readiness Probe
+          {{- if .Values.readinessProbe.tcpSocket }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.readinessProbe.tcpSocket.port }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          {{- else if .Values.readinessProbe.path }}
           readinessProbe:
             httpGet:
               path: {{ .Values.readinessProbe.path }}
               port: {{ .Values.readinessProbe.port }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          {{- end }}
+
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+
       nodeSelector:
         {{- toYaml .Values.nodeSelector | nindent 8 }}
       tolerations:
