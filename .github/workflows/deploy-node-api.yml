@@ -17,7 +17,7 @@ on:
         default: latest
 
   workflow_run:
-    workflows: ["Build/Remove Node API"]   # name of your build workflow
+    workflows: ["Build/Remove Node API"]
     types:
       - completed
 
@@ -69,6 +69,14 @@ jobs:
             --namespace ${K8S_NAMESPACE} --create-namespace \
             --set image.repository=$IMAGE_URI \
             --set image.tag=$IMAGE_TAG
+
+      - name: Validate Deployment
+        if: ${{ github.event.inputs.action == 'deploy' || github.event_name == 'workflow_run' }}
+        run: |
+          echo "Validating Node API deployment..."
+          kubectl rollout status deployment/node-api -n ${K8S_NAMESPACE} --timeout=120s
+          echo "Pods status:"
+          kubectl get pods -n ${K8S_NAMESPACE} -l app=node-api
 
       - name: Remove Node API
         if: ${{ github.event.inputs.action == 'remove' }}
