@@ -22,15 +22,16 @@ env:
   - name: JAVA_ENV
     value: production
 
+# Use TCP probe instead of HTTP since the app has no health endpoint
 livenessProbe:
-  path: /
-  port: 8080
+  tcpSocket:
+    port: 8080
   initialDelaySeconds: 10
   periodSeconds: 10
 
 readinessProbe:
-  path: /ready
-  port: 8080
+  tcpSocket:
+    port: 8080
   initialDelaySeconds: 5
   periodSeconds: 5
 
