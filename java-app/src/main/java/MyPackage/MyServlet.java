@@ -45,7 +45,7 @@ public class MyServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
 		//Open Weather API setup
-		String myApiKey = "use your API key here";
+		String myApiKey = "f609858937e9bc01015d69a8ab1f9397";
 		//getting the city name from the form input
 		String city = request.getParameter("city");
 		//Create the URL of the 
