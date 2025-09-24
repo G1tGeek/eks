@@ -1,3 +1,0 @@
-{
-  "database": "cassandra://172.17.0.3:9042/employee_db?username=scylladb&password=password"
-}
