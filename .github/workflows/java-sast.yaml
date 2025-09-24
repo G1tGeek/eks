@@ -26,6 +26,7 @@ jobs:
       # Manually compile the Java sources
       - name: Build with javac
         run: |
+          cd java-app
           mkdir -p build
           javac -cp "src/main/webapp/WEB-INF/lib/*" \
             -d build \
