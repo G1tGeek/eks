@@ -34,5 +34,3 @@ readinessProbe:
   initialDelaySeconds: 5
   periodSeconds: 5
 
-nodeSelector:
-  app: nodejs   # ensures this pod lands only on nodes with label "app=nodejs"
