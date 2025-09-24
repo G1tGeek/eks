@@ -37,5 +37,11 @@ jobs:
           # Build image from java-app/ directory
           docker build -t $ECR_URI:$IMAGE_TAG java-app
 
-          # Push only commit SHA tag
+          # Push commit SHA tag
           docker push $ECR_URI:$IMAGE_TAG
+
+          # Tag image as 'latest'
+          docker tag $ECR_URI:$IMAGE_TAG $ECR_URI:latest
+
+          # Push 'latest' tag
+          docker push $ECR_URI:latest
