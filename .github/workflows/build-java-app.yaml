@@ -1,4 +1,4 @@
-name: Build & Push Docker Image (Java App)
+name: Build & Push Java Image 
 
 on:
   workflow_run:
