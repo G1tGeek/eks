@@ -16,8 +16,17 @@ on:
         required: false
         default: latest
 
+  workflow_run:
+    workflows: ["Build/Remove Node API"]   # name of your build workflow
+    types:
+      - completed
+
 jobs:
   manage:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     env:
       AWS_REGION: ap-northeast-1
@@ -51,13 +60,15 @@ jobs:
           version: latest
 
       - name: Deploy Node API
-        if: ${{ github.event.inputs.action == 'deploy' }}
+        if: ${{ github.event.inputs.action == 'deploy' || github.event_name == 'workflow_run' }}
         run: |
           IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${ECR_REPOSITORY}
+          IMAGE_TAG=${{ github.event.inputs.image_tag || github.sha }}
+          echo "Deploying image $IMAGE_URI:$IMAGE_TAG"
           helm upgrade --install node-api ${HELM_CHART_PATH} \
             --namespace ${K8S_NAMESPACE} --create-namespace \
             --set image.repository=$IMAGE_URI \
-            --set image.tag=${{ github.event.inputs.image_tag }}
+            --set image.tag=$IMAGE_TAG
 
       - name: Remove Node API
         if: ${{ github.event.inputs.action == 'remove' }}
