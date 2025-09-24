@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "node-api/**"
+  workflow_dispatch:   
 
 jobs:
   codeql:
