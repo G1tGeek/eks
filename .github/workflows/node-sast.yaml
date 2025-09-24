@@ -1,4 +1,4 @@
-name: SAST Scan
+name: SAST Scan for Node API
 
 on:
   push:
