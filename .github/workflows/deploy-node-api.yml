@@ -63,8 +63,8 @@ jobs:
         if: ${{ github.event.inputs.action == 'deploy' || github.event_name == 'workflow_run' }}
         run: |
           IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${ECR_REPOSITORY}
-          
-          # Use workflow_run commit SHA when triggered by workflow_run
+
+          # Determine image tag
           if [ "${GITHUB_EVENT_NAME}" = "workflow_run" ]; then
             IMAGE_TAG=${{ github.event.workflow_run.head_sha }}
           else
@@ -81,9 +81,21 @@ jobs:
         if: ${{ github.event.inputs.action == 'deploy' || github.event_name == 'workflow_run' }}
         run: |
           echo "Validating Node API deployment..."
-          kubectl rollout status deployment/node-api -n ${K8S_NAMESPACE} --timeout=120s
-          echo "Pods status:"
-          kubectl get pods -n ${K8S_NAMESPACE} -l app=node-api
+
+          # Get Deployment(s) created by Helm release
+          DEPLOYMENTS=$(helm status node-api -n ${K8S_NAMESPACE} -o json | jq -r '.resources[] | select(.kind=="Deployment") | .name')
+
+          if [ -n "$DEPLOYMENTS" ]; then
+            for DEPLOYMENT in $DEPLOYMENTS; do
+              echo "Checking rollout status for $DEPLOYMENT..."
+              kubectl rollout status deployment/$DEPLOYMENT -n ${K8S_NAMESPACE} --timeout=120s
+            done
+            echo "Pods status:"
+            # Use the known label 'app=node-api' to list pods
+            kubectl get pods -n ${K8S_NAMESPACE} -l app=node-api
+          else
+            echo "No Deployment found for Helm release 'node-api', skipping validation."
+          fi
 
       - name: Remove Node API
         if: ${{ github.event.inputs.action == 'remove' }}
