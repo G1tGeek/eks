@@ -63,7 +63,14 @@ jobs:
         if: ${{ github.event.inputs.action == 'deploy' || github.event_name == 'workflow_run' }}
         run: |
           IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${ECR_REPOSITORY}
-          IMAGE_TAG=${{ github.event.inputs.image_tag || github.sha }}
+          
+          # Use workflow_run commit SHA when triggered by workflow_run
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_run" ]; then
+            IMAGE_TAG=${{ github.event.workflow_run.head_sha }}
+          else
+            IMAGE_TAG=${{ github.event.inputs.image_tag }}
+          fi
+
           echo "Deploying image $IMAGE_URI:$IMAGE_TAG"
           helm upgrade --install node-api ${HELM_CHART_PATH} \
             --namespace ${K8S_NAMESPACE} --create-namespace \
