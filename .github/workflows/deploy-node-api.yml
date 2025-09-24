@@ -17,7 +17,7 @@ on:
         default: latest
 
   workflow_run:
-    workflows: ["Build & Push Docker Image"]
+    workflows: ["Build & Push Node API Image"]
     types:
       - completed
 
