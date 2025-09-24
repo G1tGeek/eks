@@ -23,12 +23,17 @@ jobs:
           languages: java
           queries: security-extended
 
-      # Manually compile the Java sources
       - name: Build with javac
         run: |
           cd java-app
-          mkdir -p build
-          javac -cp "src/main/webapp/WEB-INF/lib/*" \
+          mkdir -p build lib
+
+          # Download Servlet API (Jakarta) JAR
+          curl -L -o lib/jakarta-servlet-api.jar \
+            https://repo1.maven.org/maven2/jakarta/servlet/jakarta.servlet-api/6.0.0/jakarta.servlet-api-6.0.0.jar
+
+          # Compile all Java sources, including gson + servlet-api
+          javac -cp "src/main/webapp/WEB-INF/lib/*:lib/*" \
             -d build \
             $(find src/main/java -name "*.java")
 
