@@ -23,8 +23,13 @@ jobs:
           languages: java
           queries: security-extended
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+      # Manually compile the Java sources
+      - name: Build with javac
+        run: |
+          mkdir -p build
+          javac -cp "src/main/webapp/WEB-INF/lib/*" \
+            -d build \
+            $(find src/main/java -name "*.java")
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
