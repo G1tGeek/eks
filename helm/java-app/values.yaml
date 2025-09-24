@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: 130830900133.dkr.ecr.ap-northeast-1.amazonaws.com/java-app
+  repository: 130830900133.dkr.ecr.ap-northeast-1.amazonaws.com/java-api
   tag: "latest"
   pullPolicy: IfNotPresent
 
