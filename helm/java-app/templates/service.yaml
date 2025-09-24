@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "java-app.fullname" . }}
+  labels:
+    {{- include "java-app.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: {{ include "java-app.fullname" . }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
