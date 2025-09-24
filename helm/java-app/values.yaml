@@ -34,8 +34,7 @@ readinessProbe:
   initialDelaySeconds: 5
   periodSeconds: 5
 
-nodeSelector:
-  app: java
+nodeSelector: {}
 
 tolerations: []
 affinity: {}
