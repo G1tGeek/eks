@@ -651,10 +651,6 @@ This ensures infra is updated before app changes, and deploys only tagged releas
 
 For CI/CD, push changes to trigger workflows automatically.
 
-## License
-
-Licensed under Apache 2.0. See [LICENSE](LICENSE) for details.
-
 ## Maintainers
 
 - Repository Owner: G1tGeek
